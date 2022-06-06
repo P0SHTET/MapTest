@@ -551,7 +551,34 @@ namespace GeometryUtils
 
         public IEnumerable<IEdge> GetVoronoiEdgesBasedOnCircumCenter() => GetVoronoiEdges(GetTriangleCircumcenter);
         public IEnumerable<IEdge> GetVoronoiEdgesBasedOnCentroids() => GetVoronoiEdges(GetCentroid);
-                
+
+        public IEnumerable<IVoronoiCell> GetVoronoiCells(Func<int, IPoint> triangleVerticeSelector = null)
+        {
+            if (triangleVerticeSelector == null) triangleVerticeSelector = x => GetCentroid(x);
+
+            var seen = new HashSet<int>();
+            var vertices = new List<IPoint>(10);    // Keep it outside the loop, reuse capacity, less resizes.
+
+            for (var triangleId = 0; triangleId < Triangles.Length; triangleId++)
+            {
+                var id = Triangles[NextHalfedge(triangleId)];
+                // True if element was added, If resize the set? O(n) : O(1)
+                if (seen.Add(id))
+                {
+                    foreach (var edge in EdgesAroundPoint(triangleId))
+                    {
+                        // triangleVerticeSelector cant be null, no need to check before invoke (?.).
+                        vertices.Add(triangleVerticeSelector.Invoke(TriangleOfEdge(edge)));
+                    }
+                    yield return new VoronoiCell(id, vertices.ToArray());
+                    vertices.Clear();   // Clear elements, keep capacity
+                }
+            }
+        }
+
+        public IEnumerable<IVoronoiCell> GetVoronoiCellsBasedOnCircumcenters() => GetVoronoiCells(GetTriangleCircumcenter);
+        public IEnumerable<IVoronoiCell> GetVoronoiCellsBasedOnCentroids() => GetVoronoiCells(GetCentroid);
+
         public IEnumerable<IEdge> GetHullEdges() => CreateHull(GetHullPoints());
 
         public IPoint[] GetHullPoints() => Array.ConvertAll<int, IPoint>(Hull, (x) => Points[x]);
@@ -562,6 +589,16 @@ namespace GeometryUtils
             foreach (var p in PointsOfTriangle(t))
             {
                 points.Add(Points[p]);
+            }
+            return points.ToArray();
+        }
+
+        public IPoint[] GetRellaxedPoints()
+        {
+            var points = new List<IPoint>();
+            foreach (var cell in GetVoronoiCellsBasedOnCircumcenters())
+            {
+                points.Add(GetCentroid(cell.Points));
             }
             return points.ToArray();
         }
@@ -623,6 +660,29 @@ namespace GeometryUtils
             foreach (var edge in GetVoronoiEdges())
             {
                 callback?.Invoke(edge);
+            }
+        }
+        public void ForEachVoronoiCellBasedOnCentroids(Action<IVoronoiCell> callback)
+        {
+            foreach (var cell in GetVoronoiCellsBasedOnCentroids())
+            {
+                callback?.Invoke(cell);
+            }
+        }
+
+        public void ForEachVoronoiCellBasedOnCircumcenters(Action<IVoronoiCell> callback)
+        {
+            foreach (var cell in GetVoronoiCellsBasedOnCircumcenters())
+            {
+                callback?.Invoke(cell);
+            }
+        }
+
+        public void ForEachVoronoiCell(Action<IVoronoiCell> callback, Func<int, IPoint> triangleVertexSelector = null)
+        {
+            foreach (var cell in GetVoronoiCells(triangleVertexSelector))
+            {
+                callback?.Invoke(cell);
             }
         }
 
