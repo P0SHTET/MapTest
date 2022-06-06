@@ -10,7 +10,27 @@
 
 
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="400"/>
+        </Grid.ColumnDefinitions>
         <esri:MapView x:Name="MyMapView"/>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="View" Name="ViewBut" Background="DarkGray" Click="ViewBut_Click"/>
+                <Button Grid.Column="1" Content="Add" Name="AddBut" Click="AddBut_Click"/>
+                <Button Grid.Column="2" Content="Edit" Name="EditBut" Click="EditBut_Click"/>
+            </Grid>
+        </Grid>
     </Grid>
 
 </Window>
