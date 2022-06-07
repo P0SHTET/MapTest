@@ -5,20 +5,16 @@ using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Esri.ArcGISRuntime.Data;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Esri.ArcGISRuntime.UI.Controls;
-using System.Drawing;
 using System.Windows.Media;
-using Windows.UI.Popups;
 using MapTest.MapMaster;
 using ExcelUtils;
-using System.IO;
 using Microsoft.Win32;
+using System.Windows.Input;
+using System.Windows.Controls;
+using MapTest.Pages;
 
 namespace MapTest
 {
@@ -30,7 +26,22 @@ namespace MapTest
         private List<MapPoint> _inputPointCollection;
         private GraphicsOverlay _graphicsOverlayAddPoints;
         private Graphic? _selectedPointGraphics;
-        private readonly Brush _defaultColor;
+        private IEnumerable<TemperaturePointModel> _dataTable;
+
+        private ViewMapPage _viewMapPage = new ViewMapPage();
+        private AddPointsPage _addPointsPage = new AddPointsPage();
+        private EditPointPage _editPointPage = new EditPointPage();
+
+        private readonly Brush _defaultColor = Brushes.White;
+        private readonly Brush _activeColor = Brushes.DarkGray;
+
+        private readonly Thickness _activeThickness = new Thickness(1, 1, 1, 0);
+        private readonly Thickness _notActiveThickness = new Thickness(0, 0, 0, 1);
+
+        private readonly CornerRadius _activeRadius = new CornerRadius(5, 5, 0, 0);
+        private readonly CornerRadius _notActiveRadius = new CornerRadius(0, 0, 0, 0);
+
+        private const double _scale = 1000000;
 
         public double MaxTemp { get; set; }
         public double MinTemp { get; set; }
@@ -56,18 +67,21 @@ namespace MapTest
 
             InitializeComponent();
 
-            _defaultColor = AddBut.Background;
-
             MyMapView.Map = new Map(BasemapStyle.ArcGISTerrain);
 
-            var data = _excelUtil.GetPointsData();
+            _dataTable = _excelUtil.GetPointsData();
 
             MaxTemp = _excelUtil.GetMaxTemp();
             MinTemp = _excelUtil.GetMinTemp();
 
-            _mapController.MapChanged += _mapController_MapChanged;
+            _mapController.MapChangedEvent += _mapController_MapChanged;
+            _viewMapPage.MapChangedEvent += _viewMapPage_MapChangedEvent;
 
-            _mapController.UpdateGraphics(data, MaxTemp, MinTemp);
+            _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
+
+            ChangePage(ViewBut);
+            _viewMapPage.UpdateDataGrid(_dataTable);
+            ControlPage.Navigate(_viewMapPage);
         }
 
         private void _mapController_MapChanged(GraphicsOverlay polygons, GraphicsOverlay points)
@@ -76,6 +90,11 @@ namespace MapTest
             MyMapView.GraphicsOverlays.Add(polygons);
             MyMapView.GraphicsOverlays.Add(points);
 
+        }
+
+        private void _viewMapPage_MapChangedEvent(double x, double y)
+        {
+            MyMapView.SetViewpointAsync(new Viewpoint(y,x, _scale));
         }
 
         private void MyMapView_GeoViewTapped_Add(object sender, GeoViewInputEventArgs e)
@@ -124,10 +143,10 @@ namespace MapTest
                 }
             }
 
-            MyMapView.SetViewpointAsync(new Viewpoint((MapPoint)_selectedPointGraphics.Geometry,100000));
+            MyMapView.SetViewpointAsync(new Viewpoint((MapPoint)_selectedPointGraphics.Geometry,_scale));
         }
 
-        private void ViewBut_Click(object sender, RoutedEventArgs e)
+        private void ViewBut_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             MyMapView.GeoViewTapped -= MyMapView_GeoViewTapped_Edit;
             MyMapView.GeoViewTapped -= MyMapView_GeoViewTapped_Add;
@@ -135,12 +154,12 @@ namespace MapTest
             if (MyMapView.GraphicsOverlays.Contains(_graphicsOverlayAddPoints))
                 MyMapView.GraphicsOverlays.Remove(_graphicsOverlayAddPoints);
 
-            ViewBut.Background = Brushes.DarkGray;
-            AddBut.Background = _defaultColor;
-            EditBut.Background = _defaultColor;
+            ChangePage(sender);
+
+            ControlPage.Navigate(_viewMapPage);
         }
 
-        private void AddBut_Click(object sender, RoutedEventArgs e)
+        private void AddBut_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             MyMapView.GeoViewTapped -= MyMapView_GeoViewTapped_Edit;
             MyMapView.GeoViewTapped += MyMapView_GeoViewTapped_Add;
@@ -148,22 +167,43 @@ namespace MapTest
             if (!MyMapView.GraphicsOverlays.Contains(_graphicsOverlayAddPoints))
                 MyMapView.GraphicsOverlays.Add(_graphicsOverlayAddPoints);
 
-            ViewBut.Background = _defaultColor;
-            AddBut.Background = Brushes.DarkGray;
-            EditBut.Background = _defaultColor;
+            ChangePage(sender);
+
+            ControlPage.Navigate(_addPointsPage);
         }
 
-        private void EditBut_Click(object sender, RoutedEventArgs e)
+        private void EditBut_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             MyMapView.GeoViewTapped += MyMapView_GeoViewTapped_Edit;
             MyMapView.GeoViewTapped -= MyMapView_GeoViewTapped_Add;
 
-            if(MyMapView.GraphicsOverlays.Contains(_graphicsOverlayAddPoints))
+            if (MyMapView.GraphicsOverlays.Contains(_graphicsOverlayAddPoints))
                 MyMapView.GraphicsOverlays.Remove(_graphicsOverlayAddPoints);
 
-            ViewBut.Background = _defaultColor;
-            AddBut.Background = _defaultColor;
-            EditBut.Background = Brushes.DarkGray;
+            ChangePage(sender);
+
+            ControlPage.Navigate(_editPointPage);
+        }
+
+        private void ChangePage(object sender)
+        {
+            ViewBut.Background =
+                AddBut.Background =
+                EditBut.Background = _defaultColor;
+
+            ((Border)sender).Background = _activeColor;
+
+            ViewBut.BorderThickness =
+                AddBut.BorderThickness =
+                EditBut.BorderThickness = _notActiveThickness;
+
+            ((Border)sender).BorderThickness = _activeThickness;
+
+            ViewBut.CornerRadius =
+                AddBut.CornerRadius =
+                EditBut.CornerRadius = _notActiveRadius;
+
+            ((Border)sender).CornerRadius = _activeRadius;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
-using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 using ExcelUtils;
@@ -8,15 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MapTest.MapMaster
 {
     public class MapController
     {
-        public delegate void MapChangedEvent(GraphicsOverlay polygons, GraphicsOverlay points);
-        public event MapChangedEvent MapChanged;
+        public delegate void MapChanged(GraphicsOverlay polygons, GraphicsOverlay points);
+        public event MapChanged MapChangedEvent;
 
         private GraphicsOverlay _graphicsOverlayPolygon;
         private GraphicsOverlay _graphicsOverlayPoint;
@@ -37,7 +34,7 @@ namespace MapTest.MapMaster
             _graphicsOverlayPolygon.ClearSelection();
 
             var delanurator = new Delaunator(pointsList.ToArray());
-            var triangles = delanurator.GetTriangles();
+            var polygons = delanurator.GetVoronoiCells();
 
             _maxTemp = maxTemp;
             _minTemp = minTemp;
@@ -45,17 +42,23 @@ namespace MapTest.MapMaster
             
             Random random = new Random();
 
-            foreach(var triangle in triangles)
+            foreach(var polygon in polygons)
             {
-                var triangleTempPoints = triangle.Points.Select(x=>x as TemperaturePointModel);
-                var avgTriangleTemp = triangle.Points.Select(x=>x as TemperaturePointModel).Average(x=>x.Temperature);
-                var trianglePoints = triangle.Points.Select(x => new MapPoint(x.X, x.Y, _spatialReference));
-                var trianglePolygon = new Polygon(trianglePoints, _spatialReference);
-                var triangleGraphics = new Graphic(trianglePolygon, 
+                var triangleTempPoints = polygon.Points.Select(x=>x as TemperaturePointModel);
+                var polygonPoints = polygon.Points.Select(x => new MapPoint(x.X, x.Y, _spatialReference));
+                var polygonGeometry = new Polygon(polygonPoints, _spatialReference);
+                double? avgPolygonTemperature = null;
+                foreach(var point in pointsList)
+                    
+                    if (GeometryEngine.Intersects(polygonGeometry, new MapPoint(point.Longitude, point.Latitude, _spatialReference)))
+                        avgPolygonTemperature = point.Temperature;
+                
+
+                var polygonGraphic = new Graphic(polygonGeometry, 
                                                     new SimpleFillSymbol(SimpleFillSymbolStyle.Solid, 
-                                                                         GetTempColor(avgTriangleTemp), 
+                                                                         GetTempColor(avgPolygonTemperature), 
                                                                          new SimpleLineSymbol(SimpleLineSymbolStyle.Solid,Color.FromArgb(30,0,0,0),0.5)));
-                _graphicsOverlayPolygon.Graphics.Add(triangleGraphics);
+                _graphicsOverlayPolygon.Graphics.Add(polygonGraphic);
             }
 
             foreach (var point in pointsList)
@@ -68,15 +71,17 @@ namespace MapTest.MapMaster
                     );
             }
 
-            MapChanged?.Invoke(_graphicsOverlayPolygon, _graphicsOverlayPoint);
+            MapChangedEvent?.Invoke(_graphicsOverlayPolygon, _graphicsOverlayPoint);
         }
 
-        private Color GetTempColor(double temp)
+        private Color GetTempColor(double? temp)
         {
+            if (temp is null) return Color.FromArgb(50, 0, 0, 0);
+
             byte r = (byte)((temp - _minTemp) / (_maxTemp - _minTemp) * 255.0);
             byte b = (byte)((_maxTemp - temp) / (_maxTemp - _minTemp) * 255.0);
 
-            return Color.FromArgb(200, 255, r, b);
+            return Color.FromArgb(100, 255, r, b);
         }
 
     }

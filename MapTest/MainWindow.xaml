@@ -9,27 +9,40 @@
         Title="MainWindow" Height="450" Width="800">
 
 
-    <Grid>
+    <Grid Background="DarkGray">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition Width="400"/>
+            <ColumnDefinition Width="500"/>
         </Grid.ColumnDefinitions>
-        <esri:MapView x:Name="MyMapView"/>
+        <esri:MapView x:Name="MyMapView" Cursor="Cross"/>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid>
+            <Grid Background="White">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="View" Name="ViewBut" Background="DarkGray" Click="ViewBut_Click"/>
-                <Button Grid.Column="1" Content="Add" Name="AddBut" Click="AddBut_Click"/>
-                <Button Grid.Column="2" Content="Edit" Name="EditBut" Click="EditBut_Click"/>
+                <Border x:Name="ViewBut" Grid.Column="0" 
+                        MouseLeftButtonUp="ViewBut_MouseLeftButtonUp"
+                        BorderBrush="Black">
+                    <Label HorizontalAlignment="Center">View</Label>
+                </Border>
+                <Border x:Name="AddBut" Grid.Column="1" 
+                        MouseLeftButtonUp="AddBut_MouseLeftButtonUp"
+                        BorderBrush="Black">
+                    <Label HorizontalAlignment="Center">Add</Label>
+                </Border>
+                <Border x:Name="EditBut" Grid.Column="2" 
+                        MouseLeftButtonUp="EditBut_MouseLeftButtonUp"
+                        BorderBrush="Black">
+                    <Label HorizontalAlignment="Center">Edit</Label>
+                </Border>
             </Grid>
+            <Frame x:Name="ControlPage" Grid.Row="1" NavigationUIVisibility="Hidden"/>
         </Grid>
     </Grid>
 

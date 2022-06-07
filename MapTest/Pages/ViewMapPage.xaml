@@ -1,0 +1,24 @@
+﻿<Page x:Class="MapTest.Pages.ViewMapPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MapTest.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="500" d:DesignWidth="500"
+      Title="ViewMapPage">
+
+    <Grid>
+        <DataGrid IsReadOnly="True" x:Name="ViewDG" 
+                  AutoGenerateColumns="False" ItemsSource="{Binding}" 
+                  MouseDoubleClick="ViewDG_MouseDoubleClick"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Название" Binding="{Binding Path=Name}" Width="100"/>
+                <DataGridTextColumn Header="Долгота °" Binding="{Binding Path=Longitude}" Width="130"/>
+                <DataGridTextColumn Header="Широта °" Binding="{Binding Path=Latitude}" Width="130"/>
+                <DataGridTextColumn Header="Т, °С" Binding="{Binding Path=Temperature}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Page>

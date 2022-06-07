@@ -33,6 +33,19 @@ namespace ExcelUtils
             _rowCount = RowCount();
         }
 
+        public void SetPointsData(IEnumerable<TemperaturePointModel> pointsList)
+        {
+            int index = 2;
+            var t = pointsList.OrderBy(x => x.Temperature);
+            foreach(var point in t)
+            {
+                _sheet[$"A{index}"].StringValue = point.Name;
+                _sheet[$"B{index}"].DoubleValue = point.Longitude;
+                _sheet[$"C{index}"].DoubleValue = point.Latitude;
+                _sheet[$"D{index}"].DoubleValue = point.Temperature;
+            }
+        }
+
         public IEnumerable<TemperaturePointModel> GetPointsData()
         {
             List<TemperaturePointModel> pointsList = new List<TemperaturePointModel>();
