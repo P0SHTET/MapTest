@@ -9,6 +9,25 @@
       Title="AddPointsPage">
 
     <Grid>
-        <Label>Add</Label>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Button Content="Save points" x:Name="SaveBut" IsEnabled="False"
+                Height="40" Width="100" Margin="390,5,10,5" Click="SaveBut_Click"/>
+        <Button Content="Cancel" x:Name="CancelBut"
+                Height="40" Width="100" Margin="285,5,115,5" Click="CancelBut_Click"/>
+
+        <DataGrid x:Name="ViewDG" Grid.Row="1"
+                  AutoGenerateColumns="False" ItemsSource="{Binding Path=Points}" 
+                  SelectionMode="Single" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Название" Binding="{Binding Path=Name}" Width="100"/>
+                <DataGridTextColumn Header="Долгота °" Binding="{Binding Path=Longitude}" Width="130"/>
+                <DataGridTextColumn Header="Широта °" Binding="{Binding Path=Latitude}" Width="130"/>
+                <DataGridTextColumn Header="Т, °С" Binding="{Binding Path=Temperature}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Page>

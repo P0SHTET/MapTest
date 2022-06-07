@@ -1,5 +1,7 @@
-﻿using System;
+﻿using ExcelUtils;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,9 +22,41 @@ namespace MapTest.Pages
     /// </summary>
     public partial class AddPointsPage : Page
     {
+        public delegate void ClearAddPoints();
+        public event ClearAddPoints ClearAddPointsEvent;
+
+        public delegate void AddNewPoints(IEnumerable<TemperaturePointModel> points);
+        public event AddNewPoints AddNewPointsEvent;
+
+        public ObservableCollection<TemperaturePointModel> Points { get; set; }
+
         public AddPointsPage()
         {
             InitializeComponent();
+            
+            Points = new ObservableCollection<TemperaturePointModel>();
+            
+            ViewDG.ItemsSource = Points;
+        }
+
+        public void AddPoint(double x, double y)
+        {
+            Points.Add(new TemperaturePointModel($"{Points.Count+1}",x,y,0));
+            SaveBut.IsEnabled = true;
+        }
+
+        private void CancelBut_Click(object sender, RoutedEventArgs e)
+        {
+            Points.Clear();
+            SaveBut.IsEnabled = false;
+            ClearAddPointsEvent?.Invoke();
+        }
+
+        private void SaveBut_Click(object sender, RoutedEventArgs e)
+        {
+            AddNewPointsEvent?.Invoke(Points);
+            Points.Clear();
+            SaveBut.IsEnabled = false;
         }
     }
 }

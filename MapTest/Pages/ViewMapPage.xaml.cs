@@ -1,6 +1,7 @@
 ﻿using ExcelUtils;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,14 +25,21 @@ namespace MapTest.Pages
         public delegate void MapScale(double x, double y);
         public event MapScale MapChangedEvent;
 
+        private ObservableCollection<TemperaturePointModel> _list;
+
         public ViewMapPage()
         {
             InitializeComponent();
+            _list = new ObservableCollection<TemperaturePointModel>();
+            ViewDG.ItemsSource = _list;
         }
 
         public void UpdateDataGrid(IEnumerable<TemperaturePointModel> list)
         {
-            ViewDG.DataContext = list;
+            foreach (var point in list)
+                if (!_list.Contains(point))
+                    _list.Add(point);
+            
         }
 
         private void ViewDG_MouseDoubleClick(object sender, MouseButtonEventArgs e)

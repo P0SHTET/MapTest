@@ -24,14 +24,14 @@ namespace MapTest.MapMaster
 
         public MapController()
         {
-            _graphicsOverlayPoint = new GraphicsOverlay() { Id="dataPoint"};
-            _graphicsOverlayPolygon = new GraphicsOverlay() { Id="dataPolygon"};
+            _graphicsOverlayPoint = new GraphicsOverlay();
+            _graphicsOverlayPolygon = new GraphicsOverlay();
         }
 
         public void UpdateGraphics(IEnumerable<TemperaturePointModel> pointsList, double maxTemp, double minTemp)
         {
-            _graphicsOverlayPoint.ClearSelection();
-            _graphicsOverlayPolygon.ClearSelection();
+            _graphicsOverlayPoint.Graphics.Clear();
+            _graphicsOverlayPolygon.Graphics.Clear();
 
             var delanurator = new Delaunator(pointsList.ToArray());
             var polygons = delanurator.GetVoronoiCells();

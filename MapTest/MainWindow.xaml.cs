@@ -24,9 +24,13 @@ namespace MapTest
         private MapController _mapController;
         private ExcelUtil _excelUtil;
         private List<MapPoint> _inputPointCollection;
+
         private GraphicsOverlay _graphicsOverlayAddPoints;
-        private Graphic? _selectedPointGraphics;
-        private IEnumerable<TemperaturePointModel> _dataTable;
+        private GraphicsOverlay _graphicsOverlayPoints;
+        private GraphicsOverlay _graphicsOverlayPolygon;
+
+        private MapPoint _selectedPointGraphics;
+        private ICollection<TemperaturePointModel> _dataTable;
 
         private ViewMapPage _viewMapPage = new ViewMapPage();
         private AddPointsPage _addPointsPage = new AddPointsPage();
@@ -51,6 +55,8 @@ namespace MapTest
             _mapController = new MapController();
             _inputPointCollection = new List<MapPoint>();
             _graphicsOverlayAddPoints = new GraphicsOverlay() { Id = "addPoints"};
+            _graphicsOverlayPoints = new GraphicsOverlay() { Id = "dataPoints" };
+            _graphicsOverlayPolygon = new GraphicsOverlay() { Id = "dataPolygon" };
             
 
             OpenFileDialog dialog = new OpenFileDialog()
@@ -69,6 +75,9 @@ namespace MapTest
 
             MyMapView.Map = new Map(BasemapStyle.ArcGISTerrain);
 
+            MyMapView.GraphicsOverlays.Add(_graphicsOverlayPoints);
+            MyMapView.GraphicsOverlays.Add(_graphicsOverlayPolygon);
+
             _dataTable = _excelUtil.GetPointsData();
 
             MaxTemp = _excelUtil.GetMaxTemp();
@@ -76,20 +85,46 @@ namespace MapTest
 
             _mapController.MapChangedEvent += _mapController_MapChanged;
             _viewMapPage.MapChangedEvent += _viewMapPage_MapChangedEvent;
+            _addPointsPage.ClearAddPointsEvent += _addPointsPage_ClearAddPointsEvent;
+            _addPointsPage.AddNewPointsEvent += _addPointsPage_AddNewPointsEvent;
 
             _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
 
             ChangePage(ViewBut);
-            _viewMapPage.UpdateDataGrid(_dataTable);
+
             ControlPage.Navigate(_viewMapPage);
+        }
+
+        private void _addPointsPage_AddNewPointsEvent(IEnumerable<TemperaturePointModel> points)
+        {
+            foreach (var point in points)
+                _dataTable.Add(point);
+
+            _excelUtil.SetPointsData(_dataTable);
+            MaxTemp = _excelUtil.GetMaxTemp();
+            MinTemp = _excelUtil.GetMinTemp();
+
+            _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
+            _graphicsOverlayAddPoints.Graphics.Clear();
+        }
+
+        private void _addPointsPage_ClearAddPointsEvent()
+        {
+            _graphicsOverlayAddPoints.Graphics.Clear();
         }
 
         private void _mapController_MapChanged(GraphicsOverlay polygons, GraphicsOverlay points)
         {
-            MyMapView.GraphicsOverlays.Clear();
-            MyMapView.GraphicsOverlays.Add(polygons);
-            MyMapView.GraphicsOverlays.Add(points);
+            MyMapView.GraphicsOverlays.Remove(_graphicsOverlayPoints);
+            MyMapView.GraphicsOverlays.Remove(_graphicsOverlayPolygon);
 
+            _graphicsOverlayPoints = points;
+            _graphicsOverlayPolygon = polygons;
+                        
+            MyMapView.GraphicsOverlays.Add(_graphicsOverlayPolygon);
+            MyMapView.GraphicsOverlays.Add(_graphicsOverlayPoints);
+
+            _viewMapPage.UpdateDataGrid(_dataTable);
         }
 
         private void _viewMapPage_MapChangedEvent(double x, double y)
@@ -101,7 +136,7 @@ namespace MapTest
         {
             try
             {
-                var centralizedPoint = (MapPoint)GeometryEngine.NormalizeCentralMeridian(e.Location);
+                var centralizedPoint = (MapPoint)GeometryEngine.Project( GeometryEngine.NormalizeCentralMeridian(e.Location), new SpatialReference(4326));
                 _inputPointCollection.Add(centralizedPoint);
                 
                 SimpleMarkerSymbol userTappedSimpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 10);
@@ -115,6 +150,7 @@ namespace MapTest
                 userTappedGraphic.ZIndex = 1;
 
                 MyMapView.GraphicsOverlays["addPoints"].Graphics.Add(userTappedGraphic);
+                _addPointsPage.AddPoint(centralizedPoint.X,centralizedPoint.Y);
             }
             catch (Exception ex)
             {
@@ -127,10 +163,8 @@ namespace MapTest
             double minDistance = double.MaxValue;
             double distance;
 
-            foreach(var point in MyMapView.GraphicsOverlays["dataPoint"].Graphics)
+            foreach(var point in _graphicsOverlayPoints.Graphics)
             {
-                
-
                 if (point.Geometry.GeometryType != GeometryType.Point) continue;
 
                 var convertGeometry = GeometryEngine.Project(point.Geometry, e.Location.SpatialReference);
@@ -139,11 +173,11 @@ namespace MapTest
                 if (distance < minDistance)
                 {
                     minDistance = distance;
-                    _selectedPointGraphics = point;
+                    _selectedPointGraphics = (MapPoint)point.Geometry;
                 }
             }
 
-            MyMapView.SetViewpointAsync(new Viewpoint((MapPoint)_selectedPointGraphics.Geometry,_scale));
+            MyMapView.SetViewpointAsync(new Viewpoint(_selectedPointGraphics,_scale));
         }
 
         private void ViewBut_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

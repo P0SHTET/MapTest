@@ -6,6 +6,7 @@ namespace ExcelUtils
     {
         private string _pathFile;
         private WorkSheet _sheet;
+        private WorkBook _book;
         private int _rowCount;
 
         public ExcelUtil()
@@ -14,6 +15,7 @@ namespace ExcelUtils
             xlsxWorkBook.CreateWorkSheet("Sheet 1");
             xlsxWorkBook.SaveAs("NewExcelFile.xlsx");
 
+            _book = xlsxWorkBook;
             _pathFile = xlsxWorkBook.FilePath;
             _sheet = xlsxWorkBook.WorkSheets.First();
             _rowCount = RowCount();
@@ -22,14 +24,16 @@ namespace ExcelUtils
         public ExcelUtil(string pathFile)
         {
             _pathFile = pathFile;
-            _sheet = WorkBook.Load(_pathFile).WorkSheets.First();
+            _book = WorkBook.Load(_pathFile);
+            _sheet = _book.WorkSheets.First();
             _rowCount = RowCount();
         }
 
         public void ChangeWorkBook(string pathFile)
         {
             _pathFile = pathFile;
-            _sheet = WorkBook.Load(_pathFile).WorkSheets.First();
+            _book = WorkBook.Load(_pathFile);
+            _sheet = _book.WorkSheets.First();
             _rowCount = RowCount();
         }
 
@@ -43,10 +47,12 @@ namespace ExcelUtils
                 _sheet[$"B{index}"].DoubleValue = point.Longitude;
                 _sheet[$"C{index}"].DoubleValue = point.Latitude;
                 _sheet[$"D{index}"].DoubleValue = point.Temperature;
+                index++;
             }
+            _book.SaveAs(_pathFile);
         }
 
-        public IEnumerable<TemperaturePointModel> GetPointsData()
+        public ICollection<TemperaturePointModel> GetPointsData()
         {
             List<TemperaturePointModel> pointsList = new List<TemperaturePointModel>();
 
