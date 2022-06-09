@@ -9,11 +9,20 @@ namespace ExcelUtils
 {
     public class TemperaturePointModel : IPoint
     {
+        public TemperaturePointModel(TemperaturePointModel point)
+        {
+            Name = point.Name;
+            Longitude = point.Longitude;
+            Latitude = point.Latitude;
+            Temperature = point.Temperature;
+        }
+
         public TemperaturePointModel()
         {
 
         }
-        public TemperaturePointModel(string name, double x, double y, double temperature)
+
+        public TemperaturePointModel(string name, double x, double y, double? temperature)
         {
             Name = name;
             Longitude = x;
@@ -24,7 +33,7 @@ namespace ExcelUtils
         public string? Name { get; set; }
         public double Longitude { get; set; }
         public double Latitude { get; set; }
-        public double Temperature { get; set; }
+        public double? Temperature { get; set; }
         public double X { get => Longitude; set => Longitude = value; }
         public double Y { get => Latitude; set => Latitude = value; }
     }

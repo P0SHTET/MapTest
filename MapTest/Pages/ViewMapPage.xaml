@@ -9,7 +9,16 @@
       Title="ViewMapPage">
 
     <Grid>
-        <DataGrid IsReadOnly="True" x:Name="ViewDG" 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+
+        <TextBlock Text="Search" Margin="10,10,325,25"/>
+        <TextBox Margin="10,25,325,5" Name="SearchBox" TextChanged="SearchBox_TextChanged"/>
+
+        <DataGrid IsReadOnly="True" x:Name="ViewDG" Grid.Row="1"
                   AutoGenerateColumns="False" ItemsSource="{Binding}" 
                   MouseDoubleClick="ViewDG_MouseDoubleClick"
                   SelectionMode="Single">

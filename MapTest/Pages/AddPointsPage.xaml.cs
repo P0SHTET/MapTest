@@ -41,7 +41,7 @@ namespace MapTest.Pages
 
         public void AddPoint(double x, double y)
         {
-            Points.Add(new TemperaturePointModel($"{Points.Count+1}",x,y,0));
+            Points.Add(new TemperaturePointModel($"{Points.Count+1}",x,y,null));
             SaveBut.IsEnabled = true;
         }
 

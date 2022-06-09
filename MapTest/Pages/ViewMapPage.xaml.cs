@@ -23,7 +23,7 @@ namespace MapTest.Pages
     public partial class ViewMapPage : Page
     {
         public delegate void MapScale(double x, double y);
-        public event MapScale MapChangedEvent;
+        public event MapScale MapScaleEvent;
 
         private ObservableCollection<TemperaturePointModel> _list;
 
@@ -36,8 +36,9 @@ namespace MapTest.Pages
 
         public void UpdateDataGrid(IEnumerable<TemperaturePointModel> list)
         {
+            _list.Clear();
             foreach (var point in list)
-                if (!_list.Contains(point))
+                if (point.Name != null && point.Name.Length>0)
                     _list.Add(point);
             
         }
@@ -45,7 +46,17 @@ namespace MapTest.Pages
         private void ViewDG_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             TemperaturePointModel point = (TemperaturePointModel)ViewDG.SelectedItem;
-            MapChangedEvent?.Invoke(point.X, point.Y);
+            MapScaleEvent?.Invoke(point.X, point.Y);
+        }
+
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(SearchBox.Text))
+            {
+                ViewDG.ItemsSource = _list;
+                return;
+            }
+            ViewDG.ItemsSource = _list.Where(x => x.Name.Contains(SearchBox.Text));
         }
     }
 }

@@ -39,32 +39,42 @@ namespace ExcelUtils
 
         public void SetPointsData(IEnumerable<TemperaturePointModel> pointsList)
         {
+            _sheet[$"A2:D{_rowCount}"].ClearContents();
             int index = 2;
-            var t = pointsList.OrderBy(x => x.Temperature);
+            var t = pointsList.OrderBy(x => x.Temperature).Reverse();
             foreach(var point in t)
             {
                 _sheet[$"A{index}"].StringValue = point.Name;
                 _sheet[$"B{index}"].DoubleValue = point.Longitude;
                 _sheet[$"C{index}"].DoubleValue = point.Latitude;
-                _sheet[$"D{index}"].DoubleValue = point.Temperature;
+                if(point.Temperature != null)
+                    _sheet[$"D{index}"].DoubleValue = (double)point.Temperature;
                 index++;
             }
+            _rowCount = index;
             _book.SaveAs(_pathFile);
+
         }
 
         public ICollection<TemperaturePointModel> GetPointsData()
         {
             List<TemperaturePointModel> pointsList = new List<TemperaturePointModel>();
-
-            for(int i = 2; i <= _rowCount; i++)             
+            double? temp;
+            for (int i = 2; i <= _rowCount; i++)
+            {
+                if (_sheet[$"D{i}"].IsEmpty)
+                    temp = null;
+                else
+                    temp = _sheet[$"D{i}"].DoubleValue;
                 pointsList.Add(new TemperaturePointModel()
                 {
-                    Name =          _sheet[$"A{i}"].StringValue,
-                    Longitude =     _sheet[$"B{i}"].DoubleValue,
-                    Latitude =      _sheet[$"C{i}"].DoubleValue,
-                    Temperature =   _sheet[$"D{i}"].DoubleValue,
+                    Name = _sheet[$"A{i}"].StringValue,
+                    Longitude = _sheet[$"B{i}"].DoubleValue,
+                    Latitude = _sheet[$"C{i}"].DoubleValue,
+                    Temperature = temp,
 
                 });
+            }
            
 
             return pointsList;
@@ -84,8 +94,7 @@ namespace ExcelUtils
         {
             int index = 2;
             while (!(_sheet[$"B{index}"].IsEmpty ||
-                     _sheet[$"C{index}"].IsEmpty ||
-                     _sheet[$"D{index}"].IsEmpty))
+                     _sheet[$"C{index}"].IsEmpty ))
                 index++;
 
             return index-1;

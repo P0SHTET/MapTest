@@ -9,6 +9,38 @@
       Title="EditPointPage">
 
     <Grid>
-        <Label>Edit</Label>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+
+        <Button Content="Save points" x:Name="SaveBut"
+                Height="40" Width="100" Margin="390,5,10,5" Click="SaveBut_Click"/>
+        <Button Content="Cancel" x:Name="CancelBut"
+                Height="40" Width="100" Margin="285,5,115,5" Click="CancelBut_Click"/>
+
+        <DataGrid IsReadOnly="False" x:Name="ViewDG" Grid.Row="1"
+                  AutoGenerateColumns="False" ItemsSource="{Binding}" 
+                  SelectedCellsChanged="ViewDG_SelectedCellsChanged"
+                  SelectionMode="Single" CanUserAddRows="False">
+            <DataGrid.Resources>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Style.Triggers>
+                        <Trigger Property="DataGridCell.IsSelected" Value="True">
+                            <Setter Property="Background" Value="DarkGray" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Название" Binding="{Binding Path=Name}" Width="100"/>
+                <DataGridTextColumn Header="Долгота °" Binding="{Binding Path=Longitude}" Width="130"/>
+                <DataGridTextColumn Header="Широта °" Binding="{Binding Path=Latitude}" Width="130"/>
+                <DataGridTextColumn Header="Т, °С" Binding="{Binding Path=Temperature}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button Content="Remove" x:Name="RemoveBut"
+            Height="40" Width="100" Margin="180,5,220,5" Click="RemoveBut_Click"/>
     </Grid>
 </Page>

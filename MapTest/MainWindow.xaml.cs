@@ -29,7 +29,7 @@ namespace MapTest
         private GraphicsOverlay _graphicsOverlayPoints;
         private GraphicsOverlay _graphicsOverlayPolygon;
 
-        private MapPoint _selectedPointGraphics;
+        private MapPoint _selectedPoint;
         private ICollection<TemperaturePointModel> _dataTable;
 
         private ViewMapPage _viewMapPage = new ViewMapPage();
@@ -45,10 +45,11 @@ namespace MapTest
         private readonly CornerRadius _activeRadius = new CornerRadius(5, 5, 0, 0);
         private readonly CornerRadius _notActiveRadius = new CornerRadius(0, 0, 0, 0);
 
-        private const double _scale = 1000000;
+        private const double _scale = 500000;
 
         public double MaxTemp { get; set; }
         public double MinTemp { get; set; }
+        public double AvgTemp { get => (MaxTemp+MinTemp)/2; }
 
         public MainWindow()
         {
@@ -73,18 +74,27 @@ namespace MapTest
 
             InitializeComponent();
 
-            MyMapView.Map = new Map(BasemapStyle.ArcGISTerrain);
+            MyMapView.Map = new Map(BasemapStyle.ArcGISTopographic);
 
             MyMapView.GraphicsOverlays.Add(_graphicsOverlayPoints);
             MyMapView.GraphicsOverlays.Add(_graphicsOverlayPolygon);
+
+            MarkersCheck.IsChecked = true;
 
             _dataTable = _excelUtil.GetPointsData();
 
             MaxTemp = _excelUtil.GetMaxTemp();
             MinTemp = _excelUtil.GetMinTemp();
 
+            ChangeAmplitude();
+
             _mapController.MapChangedEvent += _mapController_MapChanged;
-            _viewMapPage.MapChangedEvent += _viewMapPage_MapChangedEvent;
+
+            _viewMapPage.MapScaleEvent += MapScale;
+
+            _editPointPage.MapScaleEvent += MapScale;
+            _editPointPage.SaveChangePointEvent += _editPointPage_SaveChangePointEvent;
+
             _addPointsPage.ClearAddPointsEvent += _addPointsPage_ClearAddPointsEvent;
             _addPointsPage.AddNewPointsEvent += _addPointsPage_AddNewPointsEvent;
 
@@ -95,6 +105,21 @@ namespace MapTest
             ControlPage.Navigate(_viewMapPage);
         }
 
+        private void _editPointPage_SaveChangePointEvent(ICollection<TemperaturePointModel> points)
+        {
+            _dataTable.Clear();
+            foreach (var point in points)
+                _dataTable.Add(point);
+
+            _excelUtil.SetPointsData(_dataTable);
+            MaxTemp = _excelUtil.GetMaxTemp();
+            MinTemp = _excelUtil.GetMinTemp();
+
+            ChangeAmplitude();
+
+            _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
+        }
+
         private void _addPointsPage_AddNewPointsEvent(IEnumerable<TemperaturePointModel> points)
         {
             foreach (var point in points)
@@ -103,9 +128,17 @@ namespace MapTest
             _excelUtil.SetPointsData(_dataTable);
             MaxTemp = _excelUtil.GetMaxTemp();
             MinTemp = _excelUtil.GetMinTemp();
+            ChangeAmplitude();
 
             _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
             _graphicsOverlayAddPoints.Graphics.Clear();
+        }
+
+        private void ChangeAmplitude()
+        {
+            MinTempLabel.Text = MinTemp.ToString("0.00") + "°C";
+            MaxTempLabel.Text = MaxTemp.ToString("0.00") + "°C";
+            AvgTempLabel.Text = AvgTemp.ToString("0.00") + "°C";
         }
 
         private void _addPointsPage_ClearAddPointsEvent()
@@ -127,7 +160,7 @@ namespace MapTest
             _viewMapPage.UpdateDataGrid(_dataTable);
         }
 
-        private void _viewMapPage_MapChangedEvent(double x, double y)
+        private void MapScale(double x, double y)
         {
             MyMapView.SetViewpointAsync(new Viewpoint(y,x, _scale));
         }
@@ -173,11 +206,12 @@ namespace MapTest
                 if (distance < minDistance)
                 {
                     minDistance = distance;
-                    _selectedPointGraphics = (MapPoint)point.Geometry;
+                    _selectedPoint = (MapPoint)point.Geometry;
                 }
             }
 
-            MyMapView.SetViewpointAsync(new Viewpoint(_selectedPointGraphics,_scale));
+            _editPointPage.SelectPoint(_selectedPoint);
+            MyMapView.SetViewpointAsync(new Viewpoint(_selectedPoint,_scale));
         }
 
         private void ViewBut_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -216,6 +250,8 @@ namespace MapTest
 
             ChangePage(sender);
 
+            _editPointPage.UpdateDataGrid(_dataTable);
+
             ControlPage.Navigate(_editPointPage);
         }
 
@@ -238,6 +274,16 @@ namespace MapTest
                 EditBut.CornerRadius = _notActiveRadius;
 
             ((Border)sender).CornerRadius = _activeRadius;
+        }
+
+        private void MarkersCheck_Checked(object sender, RoutedEventArgs e)
+        {
+            _graphicsOverlayPoints.IsVisible = true;
+        }
+
+        private void MarkersCheck_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _graphicsOverlayPoints.IsVisible = false;
         }
     }
 }

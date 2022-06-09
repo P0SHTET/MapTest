@@ -76,12 +76,27 @@ namespace MapTest.MapMaster
 
         private Color GetTempColor(double? temp)
         {
-            if (temp is null) return Color.FromArgb(50, 0, 0, 0);
+            if (temp is null) return Color.FromArgb(100, 0, 0, 0);
 
-            byte r = (byte)((temp - _minTemp) / (_maxTemp - _minTemp) * 255.0);
-            byte b = (byte)((_maxTemp - temp) / (_maxTemp - _minTemp) * 255.0);
 
-            return Color.FromArgb(100, 255, r, b);
+            double x = (double)((temp - _minTemp) / (_maxTemp - _minTemp));
+
+            byte red, green, blue;
+            if (x > 0.5) 
+            {
+                x = (x - 0.5) * 2.0;
+                red = (byte)(x * 255);
+                green = (byte)((1 - x) * 255);
+                blue = 0;
+            }
+            else
+            {
+                x *= 2;
+                red = 0;
+                green = (byte)(x * 255);
+                blue = (byte)((1 - x) * 255);
+            }
+            return Color.FromArgb(100, red,green,blue);
         }
 
     }
