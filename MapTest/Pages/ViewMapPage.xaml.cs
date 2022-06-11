@@ -25,7 +25,10 @@ namespace MapTest.Pages
         public delegate void MapScale(double x, double y);
         public event MapScale MapScaleEvent;
 
-        private ObservableCollection<TemperaturePointModel> _list;
+        public delegate void DisplayGraph(string pointName);
+        public event DisplayGraph DisplayGraphEvent;
+
+        private readonly ObservableCollection<TemperaturePointModel> _list;
 
         public ViewMapPage()
         {
@@ -57,6 +60,11 @@ namespace MapTest.Pages
                 return;
             }
             ViewDG.ItemsSource = _list.Where(x => x.Name.Contains(SearchBox.Text));
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            DisplayGraphEvent?.Invoke(((TemperaturePointModel)ViewDG.SelectedItem).Name);
         }
     }
 }

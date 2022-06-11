@@ -15,8 +15,8 @@ namespace MapTest.MapMaster
         public delegate void MapChanged(GraphicsOverlay polygons, GraphicsOverlay points);
         public event MapChanged MapChangedEvent;
 
-        private GraphicsOverlay _graphicsOverlayPolygon;
-        private GraphicsOverlay _graphicsOverlayPoint;
+        private readonly GraphicsOverlay _graphicsOverlayPolygon;
+        private readonly GraphicsOverlay _graphicsOverlayPoint;
         private readonly SpatialReference _spatialReference = new SpatialReference(4326);
 
         private double _minTemp = -100;
@@ -33,32 +33,35 @@ namespace MapTest.MapMaster
             _graphicsOverlayPoint.Graphics.Clear();
             _graphicsOverlayPolygon.Graphics.Clear();
 
-            var delanurator = new Delaunator(pointsList.ToArray());
-            var polygons = delanurator.GetVoronoiCells();
-
-            _maxTemp = maxTemp;
-            _minTemp = minTemp;
-
-            
-            Random random = new Random();
-
-            foreach(var polygon in polygons)
+            if (pointsList.Count() > 2)
             {
-                var triangleTempPoints = polygon.Points.Select(x=>x as TemperaturePointModel);
-                var polygonPoints = polygon.Points.Select(x => new MapPoint(x.X, x.Y, _spatialReference));
-                var polygonGeometry = new Polygon(polygonPoints, _spatialReference);
-                double? avgPolygonTemperature = null;
-                foreach(var point in pointsList)
-                    
-                    if (GeometryEngine.Intersects(polygonGeometry, new MapPoint(point.Longitude, point.Latitude, _spatialReference)))
-                        avgPolygonTemperature = point.Temperature;
-                
+                var delanurator = new Delaunator(pointsList.ToArray());
+                var polygons = delanurator.GetVoronoiCells();
 
-                var polygonGraphic = new Graphic(polygonGeometry, 
-                                                    new SimpleFillSymbol(SimpleFillSymbolStyle.Solid, 
-                                                                         GetTempColor(avgPolygonTemperature), 
-                                                                         new SimpleLineSymbol(SimpleLineSymbolStyle.Solid,Color.FromArgb(30,0,0,0),0.5)));
-                _graphicsOverlayPolygon.Graphics.Add(polygonGraphic);
+                _maxTemp = maxTemp;
+                _minTemp = minTemp;
+
+
+                Random random = new Random();
+
+                foreach (var polygon in polygons)
+                {
+                    var triangleTempPoints = polygon.Points.Select(x => x as TemperaturePointModel);
+                    var polygonPoints = polygon.Points.Select(x => new MapPoint(x.X, x.Y, _spatialReference));
+                    var polygonGeometry = new Polygon(polygonPoints, _spatialReference);
+                    double? avgPolygonTemperature = null;
+                    foreach (var point in pointsList)
+
+                        if (GeometryEngine.Intersects(polygonGeometry, new MapPoint(point.Longitude, point.Latitude, _spatialReference)))
+                            avgPolygonTemperature = point.Temperature;
+
+
+                    var polygonGraphic = new Graphic(polygonGeometry,
+                                                        new SimpleFillSymbol(SimpleFillSymbolStyle.Solid,
+                                                                             GetTempColor(avgPolygonTemperature),
+                                                                             new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.FromArgb(30, 0, 0, 0), 0.5)));
+                    _graphicsOverlayPolygon.Graphics.Add(polygonGraphic);
+                }
             }
 
             foreach (var point in pointsList)
@@ -66,10 +69,11 @@ namespace MapTest.MapMaster
                 _graphicsOverlayPoint.Graphics.Add(
                     new Graphic(
                         new MapPoint(point.Longitude, point.Latitude, _spatialReference),
-                        new TextSymbol(point.Name??"",Color.Black,8,HorizontalAlignment.Center,VerticalAlignment.Bottom)
+                        new TextSymbol(point.Name ?? "", Color.Black, 8, HorizontalAlignment.Center, VerticalAlignment.Bottom)
                         )
                     );
             }
+            
 
             MapChangedEvent?.Invoke(_graphicsOverlayPolygon, _graphicsOverlayPoint);
         }

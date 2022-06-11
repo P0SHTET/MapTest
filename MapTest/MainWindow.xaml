@@ -26,18 +26,25 @@
                     </LinearGradientBrush>
                 </Rectangle.Fill>
             </Rectangle>
+            
             <CheckBox Content="Display markers" Width="110" Height="20" Name="MarkersCheck"
                   Margin="0,100,10,0" Checked="MarkersCheck_Checked" Unchecked="MarkersCheck_Unchecked" HorizontalAlignment="Right" VerticalAlignment="Top" />
 
             <TextBlock Height="30" Width="100" Margin="0,65,10,0" x:Name="MaxTempLabel"
                HorizontalAlignment="Right" VerticalAlignment="Top"
                TextAlignment="Right"/>
+            
             <TextBlock Height="30" Width="100" Margin="0,65,110,0" x:Name="AvgTempLabel"
                HorizontalAlignment="Right" VerticalAlignment="Top"
                TextAlignment="Center"/>
+            
             <TextBlock Height="30" Width="100" Margin="0,65,210,0" x:Name="MinTempLabel"
                HorizontalAlignment="Right" VerticalAlignment="Top"
                TextAlignment="Left" Text="{Binding Path=MaxTemp}"/>
+
+            <Button Content="Change Excel file" Height="20" VerticalAlignment="Bottom" 
+                    HorizontalAlignment="Left" Width="150" Name="ChangeExcelFileBut" 
+                    Click="ChangeExcelFileBut_Click" Margin="5,0,0,5"/>
         </Grid>
 
 

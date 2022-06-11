@@ -74,23 +74,19 @@ namespace MapTest
 
             InitializeComponent();
 
-            MyMapView.Map = new Map(BasemapStyle.ArcGISTopographic);
+            _dataTable = _excelUtil.GetPointsData();
+
+            MyMapView.Map = new Map(BasemapType.Topographic, 48.502, 133.06599 ,7);
 
             MyMapView.GraphicsOverlays.Add(_graphicsOverlayPoints);
             MyMapView.GraphicsOverlays.Add(_graphicsOverlayPolygon);
 
             MarkersCheck.IsChecked = true;
 
-            _dataTable = _excelUtil.GetPointsData();
-
-            MaxTemp = _excelUtil.GetMaxTemp();
-            MinTemp = _excelUtil.GetMinTemp();
-
-            ChangeAmplitude();
-
             _mapController.MapChangedEvent += _mapController_MapChanged;
 
             _viewMapPage.MapScaleEvent += MapScale;
+            _viewMapPage.DisplayGraphEvent += _viewMapPage_DisplayGraphEvent;
 
             _editPointPage.MapScaleEvent += MapScale;
             _editPointPage.SaveChangePointEvent += _editPointPage_SaveChangePointEvent;
@@ -98,11 +94,25 @@ namespace MapTest
             _addPointsPage.ClearAddPointsEvent += _addPointsPage_ClearAddPointsEvent;
             _addPointsPage.AddNewPointsEvent += _addPointsPage_AddNewPointsEvent;
 
-            _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
+            UpdateData();
 
             ChangePage(ViewBut);
 
             ControlPage.Navigate(_viewMapPage);
+        }
+
+        private void _viewMapPage_DisplayGraphEvent(string pointName)
+        {
+            try
+            {
+                var data = _excelUtil.GetPointDataForMonth(pointName);
+                var graphWindow = new DisplayGraphWindow(data.dates, data.values, $"{pointName}, май");
+                graphWindow.ShowDialog();
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show(e.Message, "Не удалось найти файл", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void _editPointPage_SaveChangePointEvent(ICollection<TemperaturePointModel> points)
@@ -110,7 +120,11 @@ namespace MapTest
             _dataTable.Clear();
             foreach (var point in points)
                 _dataTable.Add(point);
+            UpdateData();
+        }
 
+        private void UpdateData()
+        {
             _excelUtil.SetPointsData(_dataTable);
             MaxTemp = _excelUtil.GetMaxTemp();
             MinTemp = _excelUtil.GetMinTemp();
@@ -125,12 +139,8 @@ namespace MapTest
             foreach (var point in points)
                 _dataTable.Add(point);
 
-            _excelUtil.SetPointsData(_dataTable);
-            MaxTemp = _excelUtil.GetMaxTemp();
-            MinTemp = _excelUtil.GetMinTemp();
-            ChangeAmplitude();
+            UpdateData();
 
-            _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
             _graphicsOverlayAddPoints.Graphics.Clear();
         }
 
@@ -284,6 +294,24 @@ namespace MapTest
         private void MarkersCheck_Unchecked(object sender, RoutedEventArgs e)
         {
             _graphicsOverlayPoints.IsVisible = false;
+        }
+
+        private void ChangeExcelFileBut_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog()
+            {
+                Multiselect = false,
+                Filter = "Excel Files|*.xls;*.xlsx;*.xlsm"
+            };
+
+            if (dialog.ShowDialog() ?? false)
+            {
+                _excelUtil.ChangeWorkBook(dialog.FileName);
+                _dataTable = _excelUtil.GetPointsData();
+                UpdateData();
+            }
+            else
+                return;
         }
     }
 }

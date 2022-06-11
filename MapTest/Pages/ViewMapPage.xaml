@@ -18,7 +18,7 @@
         <TextBlock Text="Search" Margin="10,10,325,25"/>
         <TextBox Margin="10,25,325,5" Name="SearchBox" TextChanged="SearchBox_TextChanged"/>
 
-        <DataGrid IsReadOnly="True" x:Name="ViewDG" Grid.Row="1"
+        <DataGrid IsReadOnly="True" x:Name="ViewDG" Grid.Row="1" 
                   AutoGenerateColumns="False" ItemsSource="{Binding}" 
                   MouseDoubleClick="ViewDG_MouseDoubleClick"
                   SelectionMode="Single">
@@ -28,6 +28,19 @@
                 <DataGridTextColumn Header="Широта °" Binding="{Binding Path=Latitude}" Width="130"/>
                 <DataGridTextColumn Header="Т, °С" Binding="{Binding Path=Temperature}" Width="100"/>
             </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Display graph" Click="MenuItem_Click">
+                        <MenuItem.Icon>
+                            <Image>
+                                <Image.Source>
+                                    <BitmapImage UriSource="pack://application:,,,/Source/graphic-icon.png" />
+                                </Image.Source>
+                            </Image>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
         </DataGrid>
     </Grid>
 </Page>

@@ -5,6 +5,7 @@ namespace ExcelUtils
     public class ExcelUtil
     {
         private string _pathFile;
+        private string _pathDirectory;
         private WorkSheet _sheet;
         private WorkBook _book;
         private int _rowCount;
@@ -13,10 +14,15 @@ namespace ExcelUtils
         {
             WorkBook xlsxWorkBook = WorkBook.Create(ExcelFileFormat.XLSX);
             xlsxWorkBook.CreateWorkSheet("Sheet 1");
-            xlsxWorkBook.SaveAs("NewExcelFile.xlsx");
+
+            _pathFile = $"{AppDomain.CurrentDomain.BaseDirectory}Tables\\NewExcelFile.xlsx";
+
+            if(File.Exists(_pathFile))
+                File.Create(_pathFile);
+            xlsxWorkBook.SaveAs(_pathFile);
 
             _book = xlsxWorkBook;
-            _pathFile = xlsxWorkBook.FilePath;
+            _pathDirectory = Path.GetDirectoryName(_pathFile);
             _sheet = xlsxWorkBook.WorkSheets.First();
             _rowCount = RowCount();
         }
@@ -24,6 +30,7 @@ namespace ExcelUtils
         public ExcelUtil(string pathFile)
         {
             _pathFile = pathFile;
+            _pathDirectory = Path.GetDirectoryName(_pathFile);
             _book = WorkBook.Load(_pathFile);
             _sheet = _book.WorkSheets.First();
             _rowCount = RowCount();
@@ -32,6 +39,7 @@ namespace ExcelUtils
         public void ChangeWorkBook(string pathFile)
         {
             _pathFile = pathFile;
+            _pathDirectory = Path.GetDirectoryName(_pathFile);
             _book = WorkBook.Load(_pathFile);
             _sheet = _book.WorkSheets.First();
             _rowCount = RowCount();
@@ -80,14 +88,39 @@ namespace ExcelUtils
             return pointsList;
         }
 
+        public (double[] dates, double[] values) GetPointDataForMonth(string pointName)
+        {
+            var fileName = $"{_pathDirectory}\\{pointName}.xlsx";
+            if (!File.Exists(fileName)) throw new Exception($"Файла с полным именем {fileName} не существует");
+            var book = WorkBook.Load(fileName);
+            var sheet = book.WorkSheets.First();
+            var data = sheet.ToMultiDimensionalArray();
+            int rowCount = data.GetLength(0);
+
+            double[] dates = new double[rowCount];
+            double[] values = new double[rowCount];
+
+            for (int i = 0; i < rowCount; i++)
+            {
+                dates[i] = data[i][0].DateTimeValue.Value.ToOADate();
+                values[i] = data[i][1].DoubleValue;
+            }
+
+            return (dates, values);
+        }
+
         public double GetMaxTemp()
         {
-            return (double)_sheet[$"D2:D{_rowCount}"].Max();
+            if(_rowCount>100)
+                return (double)_sheet[$"D2:D{_rowCount}"].Max();
+            return 100;
         }
 
         public double GetMinTemp()
         {
-            return (double)_sheet[$"D2:D{_rowCount}"].Min();
+            if (_rowCount > 100)
+                return (double)_sheet[$"D2:D{_rowCount}"].Min();
+            return -100;
         }
 
         private int RowCount()
