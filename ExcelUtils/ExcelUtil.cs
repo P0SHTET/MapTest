@@ -45,7 +45,7 @@ namespace ExcelUtils
             _rowCount = RowCount();
         }
 
-        public void SetPointsData(IEnumerable<TemperaturePointModel> pointsList)
+        public void SetPointsData(ICollection<TemperaturePointModel> pointsList)
         {
             _sheet[$"A2:D{_rowCount}"].ClearContents();
             int index = 2;
@@ -66,7 +66,7 @@ namespace ExcelUtils
 
         public ICollection<TemperaturePointModel> GetPointsData()
         {
-            List<TemperaturePointModel> pointsList = new List<TemperaturePointModel>();
+            List<TemperaturePointModel> pointsList = new();
             double? temp;
             for (int i = 2; i <= _rowCount; i++)
             {

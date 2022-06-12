@@ -17,7 +17,7 @@ namespace MapTest.MapMaster
 
         private readonly GraphicsOverlay _graphicsOverlayPolygon;
         private readonly GraphicsOverlay _graphicsOverlayPoint;
-        private readonly SpatialReference _spatialReference = new SpatialReference(4326);
+        private readonly SpatialReference _spatialReference = new(4326);
 
         private double _minTemp = -100;
         private double _maxTemp = 100;
@@ -42,16 +42,15 @@ namespace MapTest.MapMaster
                 _minTemp = minTemp;
 
 
-                Random random = new Random();
-
                 foreach (var polygon in polygons)
                 {
                     var triangleTempPoints = polygon.Points.Select(x => x as TemperaturePointModel);
                     var polygonPoints = polygon.Points.Select(x => new MapPoint(x.X, x.Y, _spatialReference));
                     var polygonGeometry = new Polygon(polygonPoints, _spatialReference);
                     double? avgPolygonTemperature = null;
-                    foreach (var point in pointsList)
 
+                    //avgPolygonTemperature = triangleTempPoints.Average(x => x.Temperature);
+                    foreach (var point in pointsList)
                         if (GeometryEngine.Intersects(polygonGeometry, new MapPoint(point.Longitude, point.Latitude, _spatialReference)))
                             avgPolygonTemperature = point.Temperature;
 

@@ -19,8 +19,8 @@ namespace GeometryUtils
         private readonly int[] hullTri;
         private readonly int[] hullHash;
 
-        private double cx;
-        private double cy;
+        private readonly double cx;
+        private readonly double cy;
 
         private int trianglesLen;
         private readonly double[] coords;
@@ -31,7 +31,7 @@ namespace GeometryUtils
         {
             if (points.Length < 3)
             {
-                throw new ArgumentOutOfRangeException("Need at least 3 points");
+                throw new ArgumentOutOfRangeException(nameof(points), "Need at least 3 points");
             }
 
             Points = points;
@@ -475,9 +475,7 @@ namespace GeometryUtils
         }
         private static void Swap(int[] arr, int i, int j)
         {
-            var tmp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = tmp;
+            (arr[j], arr[i]) = (arr[i], arr[j]);
         }
         private static bool Orient(double px, double py, double qx, double qy, double rx, double ry) => (qy - py) * (rx - qx) - (qx - px) * (ry - qy) < 0;
         private static double Circumradius(double ax, double ay, double bx, double by, double cx, double cy)

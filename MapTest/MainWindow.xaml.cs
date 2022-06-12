@@ -21,29 +21,29 @@ namespace MapTest
 
     public partial class MainWindow : Window
     {
-        private MapController _mapController;
-        private ExcelUtil _excelUtil;
-        private List<MapPoint> _inputPointCollection;
+        private readonly MapController _mapController;
+        private readonly ExcelUtil _excelUtil;
+        private readonly List<MapPoint> _inputPointCollection;
 
-        private GraphicsOverlay _graphicsOverlayAddPoints;
+        private readonly GraphicsOverlay _graphicsOverlayAddPoints;
         private GraphicsOverlay _graphicsOverlayPoints;
         private GraphicsOverlay _graphicsOverlayPolygon;
 
         private MapPoint _selectedPoint;
         private ICollection<TemperaturePointModel> _dataTable;
 
-        private ViewMapPage _viewMapPage = new ViewMapPage();
-        private AddPointsPage _addPointsPage = new AddPointsPage();
-        private EditPointPage _editPointPage = new EditPointPage();
+        private readonly ViewMapPage _viewMapPage = new();
+        private readonly AddPointsPage _addPointsPage = new();
+        private readonly EditPointPage _editPointPage = new();
 
         private readonly Brush _defaultColor = Brushes.White;
         private readonly Brush _activeColor = Brushes.DarkGray;
 
-        private readonly Thickness _activeThickness = new Thickness(1, 1, 1, 0);
-        private readonly Thickness _notActiveThickness = new Thickness(0, 0, 0, 1);
+        private readonly Thickness _activeThickness = new(1, 1, 1, 0);
+        private readonly Thickness _notActiveThickness = new(0, 0, 0, 1);
 
-        private readonly CornerRadius _activeRadius = new CornerRadius(5, 5, 0, 0);
-        private readonly CornerRadius _notActiveRadius = new CornerRadius(0, 0, 0, 0);
+        private readonly CornerRadius _activeRadius = new(5, 5, 0, 0);
+        private readonly CornerRadius _notActiveRadius = new(0, 0, 0, 0);
 
         private const double _scale = 500000;
 
@@ -60,7 +60,7 @@ namespace MapTest
             _graphicsOverlayPolygon = new GraphicsOverlay() { Id = "dataPolygon" };
             
 
-            OpenFileDialog dialog = new OpenFileDialog()
+            OpenFileDialog dialog = new()
             {
                 Multiselect = false,
                 Filter = "Excel Files|*.xls;*.xlsx;*.xlsm"
@@ -83,16 +83,16 @@ namespace MapTest
 
             MarkersCheck.IsChecked = true;
 
-            _mapController.MapChangedEvent += _mapController_MapChanged;
+            _mapController.MapChangedEvent += MapController_MapChanged;
 
             _viewMapPage.MapScaleEvent += MapScale;
-            _viewMapPage.DisplayGraphEvent += _viewMapPage_DisplayGraphEvent;
+            _viewMapPage.DisplayGraphEvent += ViewMapPage_DisplayGraphEvent;
 
             _editPointPage.MapScaleEvent += MapScale;
-            _editPointPage.SaveChangePointEvent += _editPointPage_SaveChangePointEvent;
+            _editPointPage.SaveChangePointEvent += EditPointPage_SaveChangePointEvent;
 
-            _addPointsPage.ClearAddPointsEvent += _addPointsPage_ClearAddPointsEvent;
-            _addPointsPage.AddNewPointsEvent += _addPointsPage_AddNewPointsEvent;
+            _addPointsPage.ClearAddPointsEvent += AddPointsPage_ClearAddPointsEvent;
+            _addPointsPage.AddNewPointsEvent += AddPointsPage_AddNewPointsEvent;
 
             UpdateData();
 
@@ -101,12 +101,12 @@ namespace MapTest
             ControlPage.Navigate(_viewMapPage);
         }
 
-        private void _viewMapPage_DisplayGraphEvent(string pointName)
+        private void ViewMapPage_DisplayGraphEvent(string pointName)
         {
             try
             {
-                var data = _excelUtil.GetPointDataForMonth(pointName);
-                var graphWindow = new DisplayGraphWindow(data.dates, data.values, $"{pointName}, май");
+                var (dates, values) = _excelUtil.GetPointDataForMonth(pointName);
+                var graphWindow = new DisplayGraphWindow(dates, values, $"{pointName}, май");
                 graphWindow.ShowDialog();
             }
             catch(Exception e)
@@ -115,7 +115,7 @@ namespace MapTest
             }
         }
 
-        private void _editPointPage_SaveChangePointEvent(ICollection<TemperaturePointModel> points)
+        private void EditPointPage_SaveChangePointEvent(ICollection<TemperaturePointModel> points)
         {
             _dataTable.Clear();
             foreach (var point in points)
@@ -134,7 +134,7 @@ namespace MapTest
             _mapController.UpdateGraphics(_dataTable, MaxTemp, MinTemp);
         }
 
-        private void _addPointsPage_AddNewPointsEvent(IEnumerable<TemperaturePointModel> points)
+        private void AddPointsPage_AddNewPointsEvent(IEnumerable<TemperaturePointModel> points)
         {
             foreach (var point in points)
                 _dataTable.Add(point);
@@ -151,12 +151,12 @@ namespace MapTest
             AvgTempLabel.Text = AvgTemp.ToString("0.00") + "°C";
         }
 
-        private void _addPointsPage_ClearAddPointsEvent()
+        private void AddPointsPage_ClearAddPointsEvent()
         {
             _graphicsOverlayAddPoints.Graphics.Clear();
         }
 
-        private void _mapController_MapChanged(GraphicsOverlay polygons, GraphicsOverlay points)
+        private void MapController_MapChanged(GraphicsOverlay polygons, GraphicsOverlay points)
         {
             MyMapView.GraphicsOverlays.Remove(_graphicsOverlayPoints);
             MyMapView.GraphicsOverlays.Remove(_graphicsOverlayPolygon);
@@ -182,9 +182,9 @@ namespace MapTest
                 var centralizedPoint = (MapPoint)GeometryEngine.Project( GeometryEngine.NormalizeCentralMeridian(e.Location), new SpatialReference(4326));
                 _inputPointCollection.Add(centralizedPoint);
                 
-                SimpleMarkerSymbol userTappedSimpleMarkerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 10);
+                SimpleMarkerSymbol userTappedSimpleMarkerSymbol = new(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Red, 10);
 
-                Graphic userTappedGraphic = new Graphic(e.Location, new Dictionary<string, object>
+                Graphic userTappedGraphic = new(e.Location, new Dictionary<string, object>
                 {
                     { "Type", "Point" }
                 }, userTappedSimpleMarkerSymbol)
@@ -298,7 +298,7 @@ namespace MapTest
 
         private void ChangeExcelFileBut_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog dialog = new OpenFileDialog()
+            OpenFileDialog dialog = new()
             {
                 Multiselect = false,
                 Filter = "Excel Files|*.xls;*.xlsx;*.xlsm"
