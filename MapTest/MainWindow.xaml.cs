@@ -23,6 +23,7 @@ namespace MapTest
     {
         private readonly MapController _mapController;
         private readonly ExcelUtil _excelUtil;
+
         private readonly List<MapPoint> _inputPointCollection;
 
         private readonly GraphicsOverlay _graphicsOverlayAddPoints;
@@ -64,8 +65,7 @@ namespace MapTest
             {
                 Multiselect = false,
                 Filter = "Excel Files|*.xls;*.xlsx;*.xlsm"
-            };
-            
+            };            
             if (dialog.ShowDialog()??false)            
                 _excelUtil = new ExcelUtil(dialog.FileName);            
             else            

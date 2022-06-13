@@ -4,10 +4,19 @@ namespace ExcelUtils
 {
     public class ExcelUtil
     {
+        //полное имя выбранного файла
         private string _pathFile;
+
+        //имя директории, в которой содержится таблица
         private string _pathDirectory;
+
+        //лист таблицы, в котором содержатся данные
         private WorkSheet _sheet;
+
+        //Excel-книга, представляющая весь файл
         private WorkBook _book;
+
+        //количество строк в таблице
         private int _rowCount;
 
         public ExcelUtil()
@@ -83,8 +92,6 @@ namespace ExcelUtils
 
                 });
             }
-           
-
             return pointsList;
         }
 
@@ -111,16 +118,16 @@ namespace ExcelUtils
 
         public double GetMaxTemp()
         {
-            if(_rowCount>100)
-                return (double)_sheet[$"D2:D{_rowCount}"].Max();
-            return 100;
+            if (_rowCount < 2) return 100;
+            return (double)_sheet[$"D2:D{_rowCount}"].Max();
+            
         }
 
         public double GetMinTemp()
         {
-            if (_rowCount > 100)
-                return (double)_sheet[$"D2:D{_rowCount}"].Min();
-            return -100;
+            _sheet[""].
+            if (_rowCount < 2) return -100;
+            return (double)_sheet[$"D2:D{_rowCount}"].Min();            
         }
 
         private int RowCount()

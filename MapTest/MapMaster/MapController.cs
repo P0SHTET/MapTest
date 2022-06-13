@@ -12,13 +12,18 @@ namespace MapTest.MapMaster
 {
     public class MapController
     {
+        //событие, происходящее при изменении данных
         public delegate void MapChanged(GraphicsOverlay polygons, GraphicsOverlay points);
         public event MapChanged MapChangedEvent;
 
+        //система координат, в которой данны точки
+        private readonly SpatialReference _spatialReference;
+
+        //слои для полигонов и подписей на карте
         private readonly GraphicsOverlay _graphicsOverlayPolygon;
         private readonly GraphicsOverlay _graphicsOverlayPoint;
-        private readonly SpatialReference _spatialReference = new(4326);
 
+        //амплитуда температуры
         private double _minTemp = -100;
         private double _maxTemp = 100;
 
@@ -26,6 +31,7 @@ namespace MapTest.MapMaster
         {
             _graphicsOverlayPoint = new GraphicsOverlay();
             _graphicsOverlayPolygon = new GraphicsOverlay();
+            _spatialReference = new SpatialReference(4326);
         }
 
         public void UpdateGraphics(ICollection<TemperaturePointModel> pointsList, double maxTemp, double minTemp)
