@@ -59,7 +59,7 @@ namespace MapTest.Pages
                 ViewDG.ItemsSource = _list;
                 return;
             }
-            ViewDG.ItemsSource = _list.Where(x => x.Name.Contains(SearchBox.Text));
+            ViewDG.ItemsSource = _list.Where(x => x.Name.ToLower().Contains(SearchBox.Text.ToLower()));
         }
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)

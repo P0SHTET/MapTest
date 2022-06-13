@@ -28,7 +28,7 @@ namespace MapTest.MapMaster
             _graphicsOverlayPolygon = new GraphicsOverlay();
         }
 
-        public void UpdateGraphics(IEnumerable<TemperaturePointModel> pointsList, double maxTemp, double minTemp)
+        public void UpdateGraphics(ICollection<TemperaturePointModel> pointsList, double maxTemp, double minTemp)
         {
             _graphicsOverlayPoint.Graphics.Clear();
             _graphicsOverlayPolygon.Graphics.Clear();
